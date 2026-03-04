@@ -1,0 +1,15 @@
+{
+  "data": {
+    "nifty50TRI": {
+      "label": "Nifty 50 TRI",
+      "cagr3y": 14.2,
+      "cagr5y": 12.6
+    },
+    "nifty500TRI": {
+      "label": "Nifty 500 TRI",
+      "cagr3y": 15.0,
+      "cagr5y": 13.1
+    }
+  },
+  "updatedAt": "2026-03-04T12:31:34.236695Z"
+}

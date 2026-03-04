@@ -1,0 +1,19 @@
+{
+  "sources": [
+    {
+      "name": "SEBI RSS",
+      "url": "https://www.sebi.gov.in/sebirss.xml",
+      "category": "Regulation"
+    },
+    {
+      "name": "PIB Press Releases",
+      "url": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=1",
+      "category": "Budget"
+    },
+    {
+      "name": "RBI Press Releases (RSS)",
+      "url": "https://www.rbi.org.in/pressreleases_rss.xml",
+      "category": "Monetary Policy"
+    }
+  ]
+}

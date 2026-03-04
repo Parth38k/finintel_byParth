@@ -1,0 +1,35 @@
+{
+  "data": [
+    {
+      "symbol": "NIFTY 50",
+      "price": 22450.5,
+      "chgPct": 0.62
+    },
+    {
+      "symbol": "SENSEX",
+      "price": 74210.1,
+      "chgPct": 0.55
+    },
+    {
+      "symbol": "BANK NIFTY",
+      "price": 61070.2,
+      "chgPct": -0.12
+    },
+    {
+      "symbol": "NIFTY IT",
+      "price": 36210.5,
+      "chgPct": 1.02
+    },
+    {
+      "symbol": "NIFTY PHARMA",
+      "price": 18990.0,
+      "chgPct": 0.2
+    },
+    {
+      "symbol": "NIFTY MIDCAP 150",
+      "price": 15800.1,
+      "chgPct": 0.44
+    }
+  ],
+  "updatedAt": "2026-03-04T12:31:34.236793Z"
+}
