@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="AI-powered finance intelligence for Indian retail investors — stocks, mutual funds, news, and an AI analyst." />
+  <title>FinIntel — India Markets</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="#top">
+        <span class="brand__logo" aria-hidden="true">◆</span>
+        <span class="brand__text">FinIntel</span>
+      </a>
+
+      <nav class="nav">
+        <a href="#stocks">Stocks</a>
+        <a href="#funds">Mutual Funds</a>
+        <a href="#beaters">Nifty‑Beaters</a>
+        <a href="#news">News</a>
+        <a href="#ai">AI Analyst</a>
+      </nav>
+
+      <button class="btn btn--ghost" id="btnTheme" title="Toggle theme" aria-label="Toggle theme">
+        <span id="themeIcon">☾</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Live indices ticker (real-time via TradingView widget by default) -->
+  <section class="ticker" aria-label="Live market ticker">
+    <div class="container">
+      <div class="ticker__wrap" id="tvTickerWrap">
+        <!-- TradingView Ticker Tape Widget -->
+        <div class="tv-widget" id="tvTicker"></div>
+      </div>
+
+      <div class="ticker__wrap hidden" id="customTickerWrap">
+        <div class="ticker__track" id="tickerTrack" role="marquee" aria-label="Live ticker items">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <div class="ticker__right">
+        <span class="pill" id="dataStatus">Data: loading…</span>
+      </div>
+    </div>
+  </section>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="kicker">India Markets • Stocks • Mutual Funds • Macro</p>
+          <h1>Premium, minimal market intelligence for Indian retail investors.</h1>
+          <p class="sub">
+            Screen 2,500+ stocks, rank 1,400+ funds, track consistent Nifty beaters, follow macro + sector news,
+            and ask an AI analyst for structured research and valuations.
+          </p>
+
+          <div class="hero__cta">
+            <a class="btn btn--primary" href="#stocks">Explore Stocks</a>
+            <a class="btn btn--secondary" href="#funds">Rank Funds</a>
+            <button class="btn btn--ghost" id="btnDemoData" type="button">Load demo data</button>
+          </div>
+
+          <div class="note">
+            <strong>Static‑only build:</strong> runs entirely in your browser and can be deployed on GitHub Pages.
+            Live indices + watchlist can be real‑time via widgets; large‑universe “real‑time for everything” needs a paid feed.
+          </div>
+        </div>
+
+        <div class="hero__cards">
+          <div class="card stat">
+            <div class="stat__label">Universe</div>
+            <div class="stat__value" id="statUniverse">—</div>
+            <div class="stat__meta">Stocks + Funds</div>
+          </div>
+          <div class="card stat">
+            <div class="stat__label">Outperformers</div>
+            <div class="stat__value" id="statBeaters">—</div>
+            <div class="stat__meta">Alpha &gt; 0 in 3Y & 5Y</div>
+          </div>
+          <div class="card stat">
+            <div class="stat__label">News</div>
+            <div class="stat__value" id="statNews">—</div>
+            <div class="stat__meta">Latest items pulled</div>
+          </div>
+          <div class="card stat">
+            <div class="stat__label">AI</div>
+            <div class="stat__value">BYO</div>
+            <div class="stat__meta">Bring your own key</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STOCKS -->
+    <section class="section" id="stocks">
+      <div class="container">
+        <div class="section__head">
+          <div>
+            <h2>AI‑Curated Stock Screener</h2>
+            <p class="muted">Filter by sector, sort by P/E, market cap, 1‑month return, and see buy/hold signals.</p>
+          </div>
+          <div class="section__actions">
+            <button class="btn btn--secondary" id="btnRefreshStocks" type="button">Refresh</button>
+            <button class="btn btn--ghost" id="btnExplainSignals" type="button">How signals work</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="filters">
+            <label class="field">
+              <span>Search</span>
+              <input id="stockSearch" placeholder="e.g., TCS, Reliance, HDFC…" autocomplete="off" />
+            </label>
+
+            <label class="field">
+              <span>Sector</span>
+              <select id="sectorFilter"></select>
+            </label>
+
+            <label class="field">
+              <span>Signal</span>
+              <select id="signalFilter">
+                <option value="">All</option>
+                <option value="BUY">BUY</option>
+                <option value="HOLD">HOLD</option>
+                <option value="WATCH">WATCH</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Sort</span>
+              <select id="stockSort">
+                <option value="mcapCr:desc">Market Cap (high → low)</option>
+                <option value="pe:asc">P/E (low → high)</option>
+                <option value="ret1m:desc">1M Return (high → low)</option>
+                <option value="chgPct:desc">Today % (high → low)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="tableWrap" role="region" aria-label="Stock screener table">
+            <table class="table" id="stocksTable">
+              <thead>
+                <tr>
+                  <th>Stock</th>
+                  <th>Sector</th>
+                  <th class="num">Price</th>
+                  <th class="num">Day %</th>
+                  <th class="num">P/E</th>
+                  <th class="num">MCap (₹ Cr)</th>
+                  <th class="num">1M %</th>
+                  <th>Signal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="stocksTbody"></tbody>
+            </table>
+          </div>
+
+          <div class="tableFoot">
+            <span class="muted" id="stocksCount">—</span>
+            <div class="pager">
+              <button class="btn btn--ghost" id="stocksPrev" type="button">Prev</button>
+              <span class="muted" id="stocksPage">1</span>
+              <button class="btn btn--ghost" id="stocksNext" type="button">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FUNDS -->
+    <section class="section" id="funds">
+      <div class="container">
+        <div class="section__head">
+          <div>
+            <h2>Mutual Fund Ranking Engine</h2>
+            <p class="muted">Sort by 1Y return, 3Y/5Y CAGR, AUM, rating, and minimum SIP across popular categories.</p>
+          </div>
+          <div class="section__actions">
+            <button class="btn btn--secondary" id="btnRefreshFunds" type="button">Refresh</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="filters">
+            <label class="field">
+              <span>Search</span>
+              <input id="fundSearch" placeholder="e.g., Parag Parikh, SBI, ICICI…" autocomplete="off" />
+            </label>
+
+            <label class="field">
+              <span>Category</span>
+              <select id="fundCategory">
+                <option value="">All</option>
+                <option>Large Cap</option>
+                <option>Mid Cap</option>
+                <option>Small Cap</option>
+                <option>Flexi Cap</option>
+                <option>ELSS</option>
+                <option>Index</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Sort</span>
+              <select id="fundSort">
+                <option value="ret1y:desc">1Y Return (high → low)</option>
+                <option value="cagr3y:desc">3Y CAGR (high → low)</option>
+                <option value="cagr5y:desc">5Y CAGR (high → low)</option>
+                <option value="aumCr:desc">AUM (high → low)</option>
+                <option value="minSip:asc">Min SIP (low → high)</option>
+                <option value="rating:desc">Rating (high → low)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="tableWrap" role="region" aria-label="Mutual fund ranking table">
+            <table class="table" id="fundsTable">
+              <thead>
+                <tr>
+                  <th>Fund</th>
+                  <th>Category</th>
+                  <th class="num">1Y %</th>
+                  <th class="num">3Y CAGR %</th>
+                  <th class="num">5Y CAGR %</th>
+                  <th class="num">AUM (₹ Cr)</th>
+                  <th class="num">Min SIP (₹)</th>
+                  <th>Rating</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="fundsTbody"></tbody>
+            </table>
+          </div>
+
+          <div class="tableFoot">
+            <span class="muted" id="fundsCount">—</span>
+            <div class="pager">
+              <button class="btn btn--ghost" id="fundsPrev" type="button">Prev</button>
+              <span class="muted" id="fundsPage">1</span>
+              <button class="btn btn--ghost" id="fundsNext" type="button">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NIFTY BEATERS -->
+    <section class="section" id="beaters">
+      <div class="container">
+        <div class="section__head">
+          <div>
+            <h2>Nifty‑Beater Tracker</h2>
+            <p class="muted">Shows funds that consistently outperform the benchmark (alpha &gt; 0 for both 3Y and 5Y), with risk grading.</p>
+          </div>
+          <div class="section__actions">
+            <button class="btn btn--ghost" id="btnRecalcAlpha" type="button">Recalculate alpha</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="filters">
+            <label class="field">
+              <span>Benchmark</span>
+              <select id="benchmarkSelect"></select>
+            </label>
+
+            <label class="field">
+              <span>Risk grade</span>
+              <select id="riskFilter">
+                <option value="">All</option>
+                <option value="A">A (Low)</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D (High)</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Min alpha (both)</span>
+              <input id="alphaMin" type="number" step="0.1" value="0" />
+            </label>
+          </div>
+
+          <div class="tableWrap" role="region" aria-label="Nifty-beater table">
+            <table class="table" id="beatersTable">
+              <thead>
+                <tr>
+                  <th>Fund</th>
+                  <th>Category</th>
+                  <th class="num">Alpha 3Y %</th>
+                  <th class="num">Alpha 5Y %</th>
+                  <th class="num">Vol 3Y %</th>
+                  <th class="num">Max DD %</th>
+                  <th>Risk</th>
+                </tr>
+              </thead>
+              <tbody id="beatersTbody"></tbody>
+            </table>
+          </div>
+
+          <div class="tableFoot">
+            <span class="muted" id="beatersCount">—</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEWS -->
+    <section class="section" id="news">
+      <div class="container">
+        <div class="section__head">
+          <div>
+            <h2>Live Market News</h2>
+            <p class="muted">Categorised feed with timestamps: Monetary Policy, FII Data, Budget, Sector, Commodities, Regulation, Pharma.</p>
+          </div>
+          <div class="section__actions">
+            <button class="btn btn--secondary" id="btnRefreshNews" type="button">Refresh</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="tabs" id="newsTabs" role="tablist" aria-label="News categories"></div>
+          <div class="newsList" id="newsList" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI ANALYST -->
+    <section class="section" id="ai">
+      <div class="container">
+        <div class="section__head">
+          <div>
+            <h2>AI Analyst (Claude Sonnet)</h2>
+            <p class="muted">Stock analysis, DCF valuation, sector outlook, and portfolio guidance. Runs client‑side with your API key.</p>
+          </div>
+          <div class="section__actions">
+            <button class="btn btn--ghost" id="btnOpenDcf" type="button">DCF Calculator</button>
+          </div>
+        </div>
+
+        <div class="panel ai">
+          <div class="ai__left">
+            <label class="field">
+              <span>Anthropic API key (stored locally in your browser)</span>
+              <input id="anthropicKey" placeholder="sk-ant-…" autocomplete="off" />
+            </label>
+
+            <div class="ai__preset">
+              <button class="chip" data-preset="stock" type="button">Stock analysis</button>
+              <button class="chip" data-preset="dcf" type="button">DCF valuation</button>
+              <button class="chip" data-preset="sector" type="button">Sector outlook</button>
+              <button class="chip" data-preset="portfolio" type="button">Portfolio advice</button>
+            </div>
+
+            <label class="field">
+              <span>Your question</span>
+              <textarea id="aiPrompt" rows="6" placeholder="Example: Analyse Reliance Industries: moat, risks, near-term catalysts, and a simple valuation range."></textarea>
+            </label>
+
+            <div class="ai__actions">
+              <button class="btn btn--primary" id="btnAskAi" type="button">Ask AI</button>
+              <button class="btn btn--ghost" id="btnClearAi" type="button">Clear</button>
+            </div>
+
+            <p class="fineprint">
+              Educational only — not investment advice. If you paste an API key here, it is visible to your browser (client-side).
+              To keep a shared key private, you need a backend/edge proxy (not included).
+            </p>
+          </div>
+
+          <div class="ai__right">
+            <div class="ai__log" id="aiLog" aria-live="polite">
+              <div class="ai__msg ai__msg--system">
+                <strong>Tip:</strong> Click a stock or fund row to auto-fill the prompt with context.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div>
+          <div class="brand brand--small">
+            <span class="brand__logo" aria-hidden="true">◆</span>
+            <span class="brand__text">FinIntel</span>
+          </div>
+          <p class="muted">Static, no-framework build for GitHub Pages.</p>
+        </div>
+        <div class="muted">
+          <span id="buildStamp"></span>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- DCF dialog -->
+  <dialog class="dialog" id="dcfDialog">
+    <form method="dialog" class="dialog__inner">
+      <div class="dialog__head">
+        <h3>DCF Calculator</h3>
+        <button class="btn btn--ghost" value="close" aria-label="Close" type="submit">✕</button>
+      </div>
+
+      <div class="dialog__grid">
+        <label class="field">
+          <span>FCF (₹ Cr, TTM)</span>
+          <input id="dcfFcf" type="number" step="0.1" value="1000" />
+        </label>
+
+        <label class="field">
+          <span>Growth (Years 1–5, %)</span>
+          <input id="dcfGrowth" type="number" step="0.1" value="10" />
+        </label>
+
+        <label class="field">
+          <span>Discount rate (WACC, %)</span>
+          <input id="dcfWacc" type="number" step="0.1" value="12" />
+        </label>
+
+        <label class="field">
+          <span>Terminal growth (%)</span>
+          <input id="dcfTg" type="number" step="0.1" value="4" />
+        </label>
+
+        <label class="field">
+          <span>Net debt (₹ Cr)</span>
+          <input id="dcfNetDebt" type="number" step="0.1" value="0" />
+        </label>
+
+        <label class="field">
+          <span>Shares outstanding (Cr)</span>
+          <input id="dcfShares" type="number" step="0.1" value="100" />
+        </label>
+      </div>
+
+      <div class="dialog__foot">
+        <button class="btn btn--primary" id="btnCalcDcf" type="button">Calculate</button>
+        <div class="dcfOut">
+          <div class="muted">Intrinsic value / share</div>
+          <div class="dcfOut__value" id="dcfValue">—</div>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./assets/app.js" type="module"></script>
+</body>
+</html>
